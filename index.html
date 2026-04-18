@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lexicon Duel</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f5f0; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+  #root { width: 100%; max-width: 480px; }
+  input { width: 100%; padding: 10px 12px; font-size: 15px; border: 1.5px solid #ccc; border-radius: 10px; background: #fff; color: #222; outline: none; cursor: text; }
+  input:focus { border-color: #888; }
+  button { font-family: system-ui, sans-serif; font-size: 14px; padding: 9px 20px; border: 1.5px solid #bbb; border-radius: 10px; background: #fff; color: #333; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  button:active { transform: scale(0.97); }
+  .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .muted { color: #888; font-size: 13px; }
+  .success { color: #1D9E75; }
+  .danger  { color: #D85A30; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const ALL_QUESTIONS = [
+  { q: "What color is the sky on a sunny day?", a: "Blue", choices: ["Green","Blue","Pink","Yellow"], letter:"S", diff:"easy", pts:1 },
+  { q: "How many legs does a spider have?", a: "Eight", choices: ["Six","Eight","Ten","Four"], letter:"E", diff:"easy", pts:1 },
+  { q: "What do caterpillars turn into?", a: "Butterflies", choices: ["Bees","Butterflies","Moths","Dragonflies"], letter:"B", diff:"easy", pts:1 },
+  { q: "What is 5 + 7?", a: "12", choices: ["11","12","13","14"], letter:"T", diff:"easy", pts:1 },
+  { q: "Which animal is known as man's best friend?", a: "Dog", choices: ["Cat","Dog","Rabbit","Hamster"], letter:"D", diff:"easy", pts:1 },
+  { q: "What do you call baby cats?", a: "Kittens", choices: ["Puppies","Cubs","Kittens","Foals"], letter:"K", diff:"easy", pts:1 },
+  { q: "How many days are in a week?", a: "Seven", choices: ["Five","Six","Seven","Eight"], letter:"A", diff:"easy", pts:1 },
+  { q: "What shape has four equal sides?", a: "Square", choices: ["Circle","Triangle","Rectangle","Square"], letter:"Q", diff:"medium", pts:2 },
+  { q: "Which planet do we live on?", a: "Earth", choices: ["Mars","Earth","Venus","Jupiter"], letter:"R", diff:"medium", pts:2 },
+  { q: "What is the biggest animal in the ocean?", a: "Blue whale", choices: ["Great white shark","Blue whale","Dolphin","Giant squid"], letter:"W", diff:"medium", pts:2 },
+  { q: "How many months are in a year?", a: "Twelve", choices: ["Ten","Eleven","Twelve","Thirteen"], letter:"L", diff:"medium", pts:2 },
+  { q: "What do bees make?", a: "Honey", choices: ["Milk","Honey","Jam","Butter"], letter:"H", diff:"medium", pts:2 },
+  { q: "Which season comes after winter?", a: "Spring", choices: ["Summer","Autumn","Spring","Winter"], letter:"P", diff:"medium", pts:2 },
+  { q: "What is the color of a flamingo?", a: "Pink", choices: ["Red","Orange","Pink","White"], letter:"N", diff:"medium", pts:2 },
+  { q: "How many continents are there on Earth?", a: "Seven", choices: ["Five","Six","Seven","Eight"], letter:"C", diff:"hard", pts:3 },
+  { q: "What is the fastest land animal?", a: "Cheetah", choices: ["Lion","Horse","Cheetah","Ostrich"], letter:"X", diff:"hard", pts:3 },
+  { q: "What do plants need to make their own food?", a: "Sunlight", choices: ["Wind","Moonlight","Sunlight","Rain"], letter:"V", diff:"hard", pts:3 },
+  { q: "How many zeros are in one hundred?", a: "Two", choices: ["One","Two","Three","Four"], letter:"Z", diff:"hard", pts:3 },
+];
+
+const LETTER_VALUES = {Q:10,Z:10,X:8,V:4,K:4,Y:3,W:3,F:3,B:3,H:2,G:2,D:2,M:2,N:2,P:2,C:2,L:1,O:1,S:1,A:1,E:1,I:1,R:1,T:1,U:1};
+const WORDLIST = ["can","man","pan","son","bin","pin","win","pen","ten","men","cat","bat","hat","mat","rat","sat","dog","fog","log","hot","lot","dot","pot","big","dig","pig","wig","bid","hid","kid","lid","box","fox","mix","fix","six","dim","him","tip","dip","hip","lip","rip","sip","zip","cop","hop","mob","cod","cab","lab","tab","had","mad","bad","dad","lad","sad","bag","lag","nag","rag","tag","cap","gap","lap","map","nap","rap","sap","tap","car","bar","far","jar","tar","war","par","face","fact","fail","fair","fame","farm","fast","fate","fear","feat","feed","feel","feet","fell","felt","file","film","find","fine","fire","firm","fish","fist","flag","flat","fled","flex","flip","flow","foam","fold","fond","food","fool","ford","form","fort","foul","four","free","fuel","full","fund","fury","fuse","gain","gale","game","gang","gate","gave","gaze","gear","germ","gift","give","glad","glee","glow","glue","goal","gold","gone","gown","grab","gray","grim","grin","grip","grow","gulf","gust","hack","hail","half","hall","halt","hand","hang","hard","harm","hate","haul","have","hawk","head","heal","heap","hear","heat","heel","helm","help","herb","herd","hero","high","hill","hint","hire","hold","hole","home","hood","hook","hope","horn","host","hour","howl","hull","hunt","hurt","keen","keep","kind","king","knew","knit","knob","knot","lack","lake","lamb","lamp","land","lane","lark","last","late","lawn","lead","leaf","leak","lean","leap","left","lend","less","lick","life","lift","like","lime","limp","line","link","lint","lion","list","live","loan","lock","loft","lone","long","look","loop","lose","loss","lost","love","lull","lump","lung","lurk","lush","lust","made","mail","main","make","male","mall","malt","mane","mare","mark","mast","mate","meal","mean","meet","meld","melt","mend","mild","mile","mill","mind","mine","mint","miss","mist","mode","mold","monk","mood","moon","moor","more","morn","most","move","much","mule","muse","must","mute","myth","nail","name","near","neat","need","nest","news","next","nice","nine","node","none","noon","norm","nose","note","pace","pack","page","paid","pain","pair","pale","palm","park","part","pass","past","path","pave","peel","peer","pelt","perk","pest","pick","pile","pill","pine","pink","pint","pipe","pity","plan","play","plea","plot","plow","plum","plus","poem","poet","pole","poll","pond","pool","poor","pore","pork","port","pose","pour","prey","prim","prod","prop","pull","pump","pure","push","race","rack","raft","rage","raid","rail","rain","rake","ramp","rank","rant","rash","rate","read","real","reap","reef","reel","rein","rely","rent","rest","rice","rich","ride","rife","rift","ring","riot","rise","risk","road","roam","roar","robe","rock","rode","role","roll","roof","root","rope","rose","rout","ruin","rule","rune","rush","rust","safe","sage","sail","sake","sale","salt","same","sand","sane","save","seal","seam","sear","seat","seed","seek","seem","shed","ship","shop","shot","show","shut","sick","side","silk","sing","sink","site","size","skid","skim","skip","slim","slip","slow","slug","soar","soft","soil","sold","sole","some","song","sore","soul","soup","span","spar","spin","spit","spot","spur","star","stay","stem","step","stop","stub","such","sung","sunk","sure","surf","swan","swap","sway","swim","tale","tall","tame","tang","tank","taut","teal","tear","tell","tent","term","thaw","them","then","thin","tide","tilt","time","toad","toil","told","toll","tomb","tome","tone","torn","tour","town","trim","trio","trip","trod","true","tube","tuft","twig","twin","type","undo","unit","upon","urge","vale","vane","vast","veil","vein","vine","void","wade","wait","wake","walk","wall","wand","want","ward","warm","warn","warp","wash","wave","weak","wean","weed","weld","well","went","were","west","whim","wick","wide","will","wisp","woke","wolf","womb","wood","wool","word","wore","work","worm","worn","wrap","wren","yard","yawn","year","yell","zeal","zest","zone","zoom","blend","brand","brave","break","bread","bride","bring","broad","broke","build","bunch","burst","candy","carry","catch","chain","chair","chaos","charm","chase","cheap","check","cheer","chess","chief","child","claim","clash","class","clean","clear","click","cliff","climb","cling","clock","close","cloth","cloud","clown","coral","count","court","cover","crack","craft","crane","crash","crawl","crazy","cream","creek","crisp","cross","crowd","crown","cruel","crush","curve","cycle","daily","dance","death","delta","dense","depth","dozen","draft","drain","drama","drape","dream","dress","drift","drink","drive","drove","drunk","dwarf","dwell","eagle","early","earth","eight","elite","empty","enemy","enjoy","enter","equal","error","event","every","exact","exist","extra","fable","false","fancy","fatal","feast","fence","feral","ferry","fever","fewer","fiber","field","fifth","fifty","fight","final","first","flame","flare","flash","flask","flesh","float","flock","flood","floor","flour","flute","focus","forge","frail","frame","frank","fraud","fresh","front","frost","fruit","funny","fuzzy","genre","ghost","giant","given","gleam","glean","glide","globe","gloom","glory","glove","grace","grade","grand","grant","grape","grasp","grass","grate","graze","greed","greet","grief","grind","groan","group","grove","guard","guess","guide","guile","gusto","habit","haven","hazel","heavy","hedge","hence","herbs","heron","hitch","honey","honor","horse","hotel","hound","house","human","humid","hurry","ideal","image","imply","index","infer","inner","input","issue","ivory","judge","juice","juicy","jumbo","karma","knife","knock","label","large","laser","later","laugh","layer","learn","lease","least","legal","level","light","limbo","limit","linen","liver","local","lodge","lofty","logic","loose","lower","lucky","lunar","lyric","magic","major","maker","manor","maple","march","marry","match","mayor","media","merge","merit","metal","minor","minus","mixed","model","money","month","moral","motor","mount","mouse","mouth","movie","music","naive","noble","north","novel","oasis","ocean","offer","olive","onset","opera","orbit","order","organ","other","outer","owner","oxide","ozone","paint","panic","paper","pasta","patch","pause","peace","pearl","pedal","penny","peril","petal","phase","phone","photo","piano","pilot","pixel","pizza","place","plain","plane","plant","plate","plaza","plead","pluck","plume","point","poker","polar","porch","power","press","price","pride","prime","print","prior","prize","probe","prose","proud","prove","prowl","pulse","punch","purge","queen","query","quest","quick","quiet","quite","quota","quote","radar","radio","raise","rally","ranch","range","rapid","raven","reach","rebel","reign","relax","repay","rider","ridge","risky","rivet","robin","robot","rocky","rouge","rough","round","route","rover","royal","rugby","ruler","rural","rusty","saint","salsa","sandy","sauce","savor","scalp","scare","scarf","scene","scent","scope","score","scout","scrap","screw","scrub","seize","sense","serve","seven","shame","shape","share","shark","sharp","sheep","shelf","shell","shift","shine","shirt","shock","shoot","shore","short","shout","shove","sight","silly","since","sixth","sixty","skill","skull","slash","sleet","slick","slide","slime","slope","sloth","slump","smell","smile","smirk","smoke","snack","snail","snake","snare","sneak","sneer","sniff","snore","snout","snowy","sober","solve","sorry","south","space","spade","spare","spark","spawn","speed","spell","spend","spice","spire","spite","spoke","spook","spore","sport","spout","spray","spunk","squad","squat","stack","staff","stage","stain","stair","stake","stale","stamp","stand","stark","start","stash","state","steak","steal","steam","steel","steep","steer","stern","stiff","sting","stock","stomp","stone","stood","store","storm","story","stout","stove","strap","straw","stray","strip","strut","stuck","study","stuff","stump","stung","stunk","stunt","style","sugar","suite","sunny","super","surge","swamp","swarm","swear","sweat","sweep","sweet","swift","sword","table","talon","tango","tardy","taunt","teach","tempo","tense","thank","their","there","these","thick","thing","think","third","thorn","those","three","threw","throw","thumb","tiger","tight","title","today","token","topic","total","touch","tough","toxic","trace","track","trade","trail","train","trait","trash","trend","trial","tribe","trick","tried","troll","trout","trove","truce","trunk","trust","truth","tulip","twang","twirl","twist","ultra","uncle","under","unify","union","until","upper","upset","urban","usher","usual","utter","vague","valid","valor","valve","vapor","vault","verge","verse","vigor","viral","virus","vital","vivid","vocal","voter","waken","waste","watch","water","weary","weave","wedge","weigh","weird","whale","wheat","wheel","where","which","while","white","whole","whose","wider","width","windy","witch","woman","women","world","worry","worse","worst","worth","would","wrath","write","wrote","yacht","yearn","yield","young","youth","zebra","zilch"];
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function canSpell(word,letters){const av=[...letters.map(l=>l.toLowerCase())];for(const c of word.toLowerCase()){const i=av.indexOf(c);if(i===-1)return false;av.splice(i,1);}return true;}
+function scoreWord(w){return w.toUpperCase().split("").reduce((s,c)=>s+(LETTER_VALUES[c]||1),0);}
+function isValid(w){return w.length>=3&&WORDLIST.includes(w.toLowerCase());}
+function fmtTime(s){return`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;}
+
+const DIFF_COLOR={easy:"#1D9E75",medium:"#BA7517",hard:"#D85A30"};
+const LABELS=["A","B","C","D"];
+const ROUND_TOTAL=6;
+
+const CHEERS=n=>[`Woohoo, ${n}! That's correct! Amazing job!`,`Yes! Great answer, ${n}! You're so smart!`,`Fantastic, ${n}! You got it right!`,`Awesome, ${n}! You're on fire!`,`Brilliant, ${n}! Keep it up!`];
+const ENCOUR=n=>[`That's okay, ${n}! You'll get the next one!`,`Don't give up, ${n}! You're doing great!`,`Keep trying, ${n}! Every mistake helps you learn!`,`Almost, ${n}! You're getting smarter every round!`,`No worries, ${n}! The next question is yours!`];
+
+function speak(text){
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=0.95; u.pitch=1.2;
+  window.speechSynthesis.speak(u);
+}
+
+function App(){
+  const [phase,setPhase]=useState("start");
+  const [nameInput,setNameInput]=useState("");
+  const [playerName,setPlayerName]=useState("");
+  const [questions,setQuestions]=useState([]);
+  const [roundIdx,setRoundIdx]=useState(0);
+  const [letters,setLetters]=useState([]);
+  const [triviaPts,setTriviaPts]=useState(0);
+  const [selected,setSelected]=useState(null);
+  const [answered,setAnswered]=useState(false);
+  const [feedbackMsg,setFeedbackMsg]=useState("");
+  const [timer,setTimer]=useState(180);
+  const [wordInput,setWordInput]=useState("");
+  const [wordMsg,setWordMsg]=useState("");
+  const [wordTimer,setWordTimer]=useState(180);
+  const [finalWord,setFinalWord]=useState("");
+  const [totalScore,setTotalScore]=useState(0);
+  const timerRef=useRef(null);
+  const current=questions[roundIdx]||null;
+
+  const startGame=()=>{
+    const name=nameInput.trim()||"Player";
+    setPlayerName(name);
+    const q=shuffle(ALL_QUESTIONS).slice(0,ROUND_TOTAL);
+    setQuestions(q);
+    setRoundIdx(0); setLetters([]); setTriviaPts(0);
+    setSelected(null); setAnswered(false); setFeedbackMsg("");
+    setTimer(180); setFinalWord(""); setWordInput(""); setWordMsg("");
+    speak(`Let's go, ${name}! Good luck!`);
+    setPhase("answer");
+  };
+
+  const exitGame=()=>{
+    clearInterval(timerRef.current);
+    window.speechSynthesis.cancel();
+    setPhase("start"); setNameInput(""); setPlayerName("");
+  };
+
+  useEffect(()=>{
+    if(phase!=="answer")return;
+    clearInterval(timerRef.current);
+    timerRef.current=setInterval(()=>{
+      setTimer(t=>{if(t<=1){clearInterval(timerRef.current);setAnswered(true);return 0;}return t-1;});
+    },1000);
+    return()=>clearInterval(timerRef.current);
+  },[phase,roundIdx]);
+
+  useEffect(()=>{
+    if(phase!=="wordTime")return;
+    clearInterval(timerRef.current);
+    timerRef.current=setInterval(()=>{
+      setWordTimer(t=>{if(t<=1){clearInterval(timerRef.current);endGame("");return 0;}return t-1;});
+    },1000);
+    return()=>clearInterval(timerRef.current);
+  },[phase]);
+
+  const selectChoice=(choice)=>{
+    if(answered)return;
+    clearInterval(timerRef.current);
+    setSelected(choice); setAnswered(true);
+    const correct=choice===current.a;
+    if(correct){setLetters(l=>[...l,current.letter]);setTriviaPts(p=>p+current.pts);}
+    const msgs=correct?CHEERS(playerName):ENCOUR(playerName);
+    const msg=msgs[Math.floor(Math.random()*msgs.length)];
+    setFeedbackMsg(msg); speak(msg);
+  };
+
+  const nextRound=()=>{
+    const next=roundIdx+1;
+    setFeedbackMsg("");
+    if(next>=ROUND_TOTAL){setPhase("wordTime");setWordTimer(180);}
+    else{setRoundIdx(next);setSelected(null);setAnswered(false);setTimer(180);}
+  };
+
+  const submitWord=()=>{
+    const w=wordInput.trim();
+    if(w.length<3){setWordMsg("Word must be at least 3 letters.");return;}
+    if(!canSpell(w,letters)){setWordMsg("You don't have all those letters!");return;}
+    if(!isValid(w)){setWordMsg("Not a recognized word. Try another!");return;}
+    clearInterval(timerRef.current); endGame(w);
+  };
+
+  const endGame=(w)=>{
+    clearInterval(timerRef.current);
+    const ws=w?scoreWord(w):0;
+    setFinalWord(w); setTotalScore(triviaPts+ws);
+    if(w) speak(`Amazing, ${playerName}! Your word is ${w}!`);
+    setPhase("result");
+  };
+
+  // ── Start ──
+  if(phase==="start") return(
+    <div style={{textAlign:"center",paddingTop:"2rem"}}>
+      <div style={{fontSize:40,marginBottom:8}}>🧠</div>
+      <h1 style={{fontSize:24,fontWeight:600,marginBottom:8,color:"#222"}}>Lexicon Duel</h1>
+      <p style={{fontSize:14,color:"#666",marginBottom:24,lineHeight:1.6}}>Answer trivia to earn letters, then build the highest-scoring word you can!</p>
+      <div style={{textAlign:"left",marginBottom:16}}>
+        <label style={{fontSize:14,color:"#555",display:"block",marginBottom:6}}>What's your name?</label>
+        <input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&startGame()} placeholder="Enter your name…"/>
+      </div>
+      <button onClick={startGame} style={{fontSize:15,padding:"10px 30px"}}>Start game 🚀</button>
+    </div>
+  );
+
+  // ── Answer ──
+  if(phase==="answer"&&current) return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <span className="muted">Round {roundIdx+1}/{ROUND_TOTAL} · <span style={{color:DIFF_COLOR[current.diff],fontWeight:600,textTransform:"capitalize"}}>{current.diff}</span> · earn <strong>{current.letter}</strong></span>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <span style={{fontSize:13,fontWeight:600,color:timer<=10?"#D85A30":"#888"}}>{fmtTime(timer)}</span>
+          <button onClick={exitGame} style={{fontSize:12,padding:"4px 10px",color:"#888"}}>✕ Exit</button>
+        </div>
+      </div>
+      <div style={{fontSize:17,fontWeight:600,color:"#222",marginBottom:18,lineHeight:1.5}}>{current.q}</div>
+      {current.choices.map((choice,i)=>{
+        let bg="#fff",border="1px solid #ddd",op=1;
+        if(answered){
+          if(choice===current.a){bg="#e6f9f2";border="1px solid #1D9E75";}
+          else if(choice===selected){bg="#fdecea";border="1px solid #D85A30";}
+          else op=0.4;
+        }
+        return(
+          <div key={i} onClick={()=>selectChoice(choice)}
+            style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",marginBottom:8,borderRadius:12,border,background:bg,opacity:op,cursor:answered?"default":"pointer"}}>
+            <span style={{minWidth:28,height:28,borderRadius:"50%",background:"#f0f0f0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:600,color:"#555",flexShrink:0}}>{LABELS[i]}</span>
+            <span style={{fontSize:15,color:"#222"}}>{choice}</span>
+          </div>
+        );
+      })}
+      {answered&&(
+        <div style={{marginTop:16,textAlign:"center"}}>
+          <div style={{fontSize:15,fontWeight:600,marginBottom:14,color:selected===current.a?"#1D9E75":"#D85A30"}}>{feedbackMsg||( selected===current.a?`Correct! You earned ${current.letter}!`:`Wrong! The answer was ${current.a}.`)}</div>
+          <button onClick={nextRound} style={{fontSize:14,padding:"10px 24px"}}>
+            {roundIdx+1<ROUND_TOTAL?"Next round ›":"See results ›"}
+          </button>
+        </div>
+      )}
+      {letters.length>0&&(
+        <div style={{marginTop:20,padding:"10px 14px",background:"#f5f5f0",borderRadius:10}}>
+          <div className="muted" style={{marginBottom:6}}>Your letters</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {letters.map((l,i)=><span key={i} style={{background:"#fff",border:"1px solid #ddd",borderRadius:8,padding:"4px 10px",fontWeight:600,fontSize:15}}>{l}</span>)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── Result ──
+  if(phase==="result"){
+    const ws=finalWord?scoreWord(finalWord):0;
+    const total=triviaPts+ws;
+    const verdict=total>=20?"Master Lexicologist! 🏆":total>=12?"Sharp mind! 🌟":total>=6?"Solid round! 👍":"Good effort! 💪";
+    return(
+      <div style={{textAlign:"center",paddingTop:"1rem"}}>
+        <div style={{fontSize:36,marginBottom:6}}>✨</div>
+        <h2 style={{fontSize:20,fontWeight:600,marginBottom:4,color:"#222"}}>{playerName}, {verdict}</h2>
+        <p className="muted" style={{marginBottom:20}}>Here's how you did:</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:20}}>
+          {[["Trivia pts",triviaPts],["Word score",ws],["Total",total]].map(([l,v])=>(
+            <div key={l} style={{background:"#f5f5f0",borderRadius:10,padding:"14px 8px"}}>
+              <div className="muted" style={{marginBottom:4}}>{l}</div>
+              <div style={{fontSize:26,fontWeight:700,color:"#222"}}>{v}</div>
+            </div>
+          ))}
+        </div>
+        {finalWord&&(
+          <div className="card" style={{marginBottom:20}}>
+            <div className="muted" style={{marginBottom:4}}>Your word</div>
+            <div style={{fontSize:24,fontWeight:700,letterSpacing:3,color:"#222"}}>{finalWord.toUpperCase()}</div>
+          </div>
+        )}
+        <button onClick={startGame} style={{fontSize:15,padding:"10px 30px"}}>Play again 🔄</button>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
